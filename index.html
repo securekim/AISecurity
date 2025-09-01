@@ -1,0 +1,777 @@
+<!-- Version 2.3 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 모델 강건화 학습 시스템 2.3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .container-card {
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2.5rem;
+        }
+        .blue-gradient-bg {
+            background: linear-gradient(to right, #3B82F6, #60A5FA);
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+
+<div class="max-w-7xl mx-auto container-card">
+    <div class="blue-gradient-bg text-white text-center py-8 rounded-t-2xl">
+        <h1 class="text-3xl font-bold">AI 모델 강건화 학습 시스템</h1>
+        <p class="mt-2 text-lg">적응형 전략을 통한 모델 취약성 개선</p>
+    </div>
+
+    <div class="p-8">
+        <!-- Input fields are now in a single row using flexbox -->
+        <div class="flex flex-wrap items-end gap-6 mb-8">
+            <div class="flex flex-col">
+                <label for="aiModel" class="font-medium text-gray-700 mb-2">AI 모델</label>
+                <input type="text" id="aiModel" value="MobileNet-V2" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200" placeholder="모델명 입력">
+            </div>
+            <div class="flex flex-col flex-grow">
+                <label for="dataset" class="font-medium text-gray-700 mb-2">학습 및 검증 데이터 셋</label>
+                <input type="text" id="dataset" value="CIFAR-10" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200" placeholder="데이터 셋 이름 입력">
+            </div>
+            <div class="flex flex-col">
+                <label for="totalEpochs" class="font-medium text-gray-700 mb-2">총 Epoch 수</label>
+                <input type="number" id="totalEpochs" value="50" min="1" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-col">
+                <label for="vulnerabilityEpoch" class="font-medium text-gray-700 mb-2">취약도 계산 주기 (Epoch)</label>
+                <input type="number" id="vulnerabilityEpoch" value="5" min="1" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="p-6 border border-gray-200 rounded-xl bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">강건화 학습 전략 선택</h3>
+                <div class="space-y-3">
+                    <label class="flex items-center space-x-3">
+                        <input type="radio" name="strategy" value="strategyA" class="form-radio text-blue-600 h-5 w-5" checked>
+                        <span class="text-gray-700">
+                            초기 에폭에는 정상 샘플만 사용 후 적응형 학습 전환
+                        </span>
+                    </label>
+                    <label class="flex items-center space-x-3">
+                        <input type="radio" name="strategy" value="strategyB" class="form-radio text-blue-600 h-5 w-5">
+                        <span class="text-gray-700">
+                            초기 에폭에는 단일 공격만 사용 후 적응형 학습 전환
+                        </span>
+                    </label>
+                    <label class="flex items-center space-x-3">
+                        <input type="radio" name="strategy" value="strategyC" class="form-radio text-blue-600 h-5 w-5">
+                        <span class="text-gray-700">
+                            처음부터 적응형 학습 방식으로 강건화 학습
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="p-6 border border-gray-200 rounded-xl bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">적대적 공격 기법 세트</h3>
+                <div class="space-y-3">
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" id="fgsm" checked class="form-checkbox text-blue-600 h-5 w-5 rounded">
+                        <span class="text-gray-700">FGSM (Fast Gradient Sign Method)</span>
+                    </label>
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" id="pgd" checked class="form-checkbox text-blue-600 h-5 w-5 rounded">
+                        <span class="text-gray-700">PGD (Projected Gradient Descent)</span>
+                    </label>
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" id="hopskipjump" checked class="form-checkbox text-blue-600 h-5 w-5 rounded">
+                        <span class="text-gray-700">HopskipJump</span>
+                    </label>
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" id="cw" checked class="form-checkbox text-blue-600 h-5 w-5 rounded">
+                        <span class="text-gray-700">CW (Carlini and Wagner)</span>
+                    </label>
+                    <div class="mt-4 flex items-center justify-between">
+                        <span class="text-gray-700 font-medium">AI 활용 적대적 샘플 자동 생성</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="aiSampleToggle" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-center items-center space-x-4 mb-10">
+            <button id="startButton" class="px-10 py-4 bg-blue-600 text-white font-bold text-lg rounded-full hover:bg-blue-700 transition-all duration-300 shadow-lg transform hover:scale-105">
+                강건화 학습 시작
+            </button>
+            <button id="evaluateButton" class="px-10 py-4 bg-green-500 text-white font-bold text-lg rounded-full hover:bg-green-600 transition-all duration-300 shadow-lg transform hover:scale-105 hidden">
+                평가
+            </button>
+        </div>
+
+        <div id="resultsSection" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">학습 진행 상황 및 결과</h2>
+            
+            <div class="mb-8">
+                <div class="flex justify-between font-medium text-gray-700 mb-1">
+                    <span>학습 진행도</span>
+                    <span id="progressText">0% (Epoch 0/50)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progressBar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%;"></div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="p-6 border border-gray-200 rounded-xl bg-white h-[384px]">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">정확도 및 손실 추이 (일반)</h3>
+                    <canvas id="normalPerformanceChart"></canvas>
+                </div>
+                <div class="p-6 border border-gray-200 rounded-xl bg-white h-[384px]">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">정확도 및 손실 추이 (강건화 적용)</h3>
+                    <canvas id="robustPerformanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="mt-8 p-6 border border-gray-200 rounded-xl bg-white h-[384px]">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">공격별 취약도 (Pi)</h3>
+                <canvas id="vulnerabilityChart"></canvas>
+            </div>
+            
+            <div class="mt-8 p-6 border border-gray-200 rounded-xl bg-white">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">에폭별 적대적 샘플 구성 비율</h3>
+                <div class="table-container">
+                    <table class="w-full text-left table-auto">
+                        <thead class="bg-gray-50 border-b-2 border-gray-200 sticky top-0">
+                            <tr>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-gray-600">에폭</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-gray-600">FGSM</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-gray-600">PGD</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-gray-600">HopskipJump</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-gray-600">CW</th>
+                            </tr>
+                        </thead>
+                        <tbody id="batchCompositionTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="evaluationResults" class="hidden mt-8 p-6 border border-gray-200 rounded-xl bg-white min-h-[480px]">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">최종 모델 성능 비교</h3>
+                <div class="h-72 mb-4">
+                    <canvas id="comparisonEvalChart"></canvas>
+                </div>
+                <div id="evaluationContent" class="text-lg text-gray-700 mt-6">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const startButton = document.getElementById('startButton');
+    const evaluateButton = document.getElementById('evaluateButton');
+    const resultsSection = document.getElementById('resultsSection');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const batchCompositionTableBody = document.getElementById('batchCompositionTableBody');
+    const totalEpochsInput = document.getElementById('totalEpochs');
+    const vulnerabilityEpochInput = () => document.getElementById('vulnerabilityEpoch');
+    const evaluationResultsSection = document.getElementById('evaluationResults');
+    const evaluationContent = document.getElementById('evaluationContent');
+    const strategyRadios = document.getElementsByName('strategy');
+    const aiSampleToggle = document.getElementById('aiSampleToggle');
+
+    let robustEvaluations = [];
+    let normalModelFinalStats = {};
+
+    const robustPerformanceCtx = document.getElementById('robustPerformanceChart').getContext('2d');
+    const normalPerformanceCtx = document.getElementById('normalPerformanceChart').getContext('2d');
+    const vulnerabilityCtx = document.getElementById('vulnerabilityChart').getContext('2d');
+    const comparisonEvalCtx = document.getElementById('comparisonEvalChart').getContext('2d');
+    
+    const attacks = ['FGSM', 'PGD', 'HopskipJump', 'CW'];
+    const attackColors = {
+        'FGSM': 'rgb(59, 130, 246)',
+        'PGD': 'rgb(255, 99, 132)',
+        'HopskipJump': 'rgb(75, 192, 192)',
+        'CW': 'rgb(128, 99, 255)'
+    };
+
+    let ROBUST_FINAL_TARGET_NORMAL_ACCURACY;
+    let ROBUST_FINAL_TARGET_ADVERSARIAL_ACCURACY;
+    let ROBUST_FINAL_TARGET_LOSS;
+
+    let NORMAL_FINAL_TARGET_NORMAL_ACCURACY;
+    let NORMAL_FINAL_TARGET_ADVERSARIAL_ACCURACY;
+    let NORMAL_FINAL_TARGET_LOSS;
+    
+    const robustPerformanceChart = new Chart(robustPerformanceCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: '정상 샘플 정확도',
+                    data: [],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: '적대적 샘플 정확도',
+                    data: [],
+                    borderColor: 'rgb(100, 116, 139)',
+                    backgroundColor: 'rgba(100, 116, 139, 0.2)',
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: '손실',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    yAxisID: 'y1',
+                    fill: false,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: '정확도'
+                    },
+                    min: 0,
+                    max: 1
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: '손실'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+
+    const normalPerformanceChart = new Chart(normalPerformanceCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: '정상 샘플 정확도',
+                    data: [],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: '적대적 샘플 정확도',
+                    data: [],
+                    borderColor: 'rgb(100, 116, 139)',
+                    backgroundColor: 'rgba(100, 116, 139, 0.2)',
+                    fill: false,
+                    tension: 0.4
+                },
+                {
+                    label: '손실',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    yAxisID: 'y1',
+                    fill: false,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: '정확도'
+                    },
+                    min: 0,
+                    max: 1
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: '손실'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+
+    const vulnerabilityChart = new Chart(vulnerabilityCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: attacks.map(attack => ({
+                label: attack,
+                data: [],
+                borderColor: attackColors[attack],
+                backgroundColor: attackColors[attack],
+                fill: false,
+                tension: 0.4
+            }))
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '취약도 점수 (Pi)'
+                    }
+                }
+            }
+        }
+    });
+
+    const comparisonEvalChart = new Chart(comparisonEvalCtx, {
+        type: 'bar',
+        data: {
+            labels: ['일반 (정상 샘플)', '일반 (적대적 샘플)', '강건화 적용 (정상 샘플)', '강건화 적용 (적대적 샘플)'],
+            datasets: [
+                {
+                    label: '정확도',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.4)',
+                        'rgba(255, 99, 132, 0.4)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ]
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    title: {
+                        display: true,
+                        text: '정확도'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    const simulateLearning = () => {
+        const totalEpochs = parseInt(totalEpochsInput.value, 10);
+        const vulnerabilityPeriod = parseInt(vulnerabilityEpochInput().value || '5', 10);
+        const selectedStrategy = document.querySelector('input[name="strategy"]:checked').value;
+        const useAISample = aiSampleToggle.checked;
+
+        // 선택된 공격 기법 가져오기
+        const selectedAttacks = attacks.filter(attack => document.getElementById(attack.toLowerCase()).checked);
+        const numSelectedAttacks = selectedAttacks.length;
+
+        // 선택된 공격 수에 따라 강건화 모델의 최종 목표 성능을 동적으로 조정
+        const robustnessFactor = numSelectedAttacks / attacks.length;
+        
+        NORMAL_FINAL_TARGET_NORMAL_ACCURACY = (Math.random() * (0.98 - 0.96) + 0.96);
+        NORMAL_FINAL_TARGET_ADVERSARIAL_ACCURACY = (Math.random() * (0.02 - 0.01) + 0.01);
+        NORMAL_FINAL_TARGET_LOSS = (Math.random() * (0.10 - 0.05) + 0.05);
+
+        // 강건화 모델 최종 목표 정확도 및 손실 계산
+        const baseRobustNormalAccuracy = (Math.random() * (0.96 - 0.93) + 0.93);
+        const baseRobustAdversarialAccuracy = (Math.random() * (0.83 - 0.80) + 0.80);
+        
+        ROBUST_FINAL_TARGET_NORMAL_ACCURACY = NORMAL_FINAL_TARGET_NORMAL_ACCURACY * (1 - robustnessFactor) + baseRobustNormalAccuracy * robustnessFactor;
+        ROBUST_FINAL_TARGET_ADVERSARIAL_ACCURACY = NORMAL_FINAL_TARGET_ADVERSARIAL_ACCURACY * (1 - robustnessFactor) + baseRobustAdversarialAccuracy * robustnessFactor;
+        ROBUST_FINAL_TARGET_LOSS = (Math.random() * (0.10 - 0.05) + 0.05);
+
+
+        let currentEpoch = 0;
+
+        let robustNormalAccuracy = 0.5;
+        let robustAdversarialAccuracy = 0.2;
+        let robustLoss = 1.5;
+
+        let normalNormalAccuracy = 0.4;
+        let normalAdversarialAccuracy = 0.005;
+        let normalLoss = 1.8;
+
+        // 초기 취약도 및 비율 설정 (선택된 공격만 반영)
+        let vulnerabilities = {};
+        const initialScore = numSelectedAttacks > 0 ? 1 / numSelectedAttacks : 0;
+        attacks.forEach(attack => {
+            vulnerabilities[attack] = selectedAttacks.includes(attack) ? initialScore : 0;
+        });
+
+        // 'strategyA' 선택 시, 초기 0으로 설정
+        if (selectedStrategy === 'strategyA') {
+            attacks.forEach(attack => { vulnerabilities[attack] = 0; });
+        }
+        
+        const addBatchCompositionRow = (epoch, composition) => {
+            const row = document.createElement('tr');
+            row.classList.add('border-b', 'border-gray-100');
+            const epochCell = document.createElement('td');
+            epochCell.classList.add('p-3', 'text-sm', 'text-gray-700', 'font-semibold');
+            epochCell.innerText = `E${epoch}`;
+            row.appendChild(epochCell);
+
+            attacks.forEach(attack => {
+                const percentage = (composition[attack] * 100).toFixed(0) + '%';
+                const cell = document.createElement('td');
+                cell.classList.add('p-3', 'text-sm', 'text-gray-600');
+                cell.innerText = percentage;
+                row.appendChild(cell);
+            });
+            batchCompositionTableBody.appendChild(row);
+        };
+        
+        // E0 데이터 추가 (취약도 차트 시작점)
+        vulnerabilityChart.data.labels.push(`E0`);
+        vulnerabilityChart.data.datasets.forEach(dataset => {
+            dataset.data.push(vulnerabilities[dataset.label]);
+        });
+        vulnerabilityChart.update();
+        addBatchCompositionRow(0, vulnerabilities);
+
+
+        const interval = setInterval(() => {
+            currentEpoch++;
+
+            const progressPercentage = (currentEpoch / totalEpochs) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            progressText.innerText = `${progressPercentage.toFixed(0)}% (Epoch ${currentEpoch}/${totalEpochs})`;
+            
+            const maxEpochChange = 0.05;
+
+            // --- Normal Model Logic (Revised for smoother curve without maxEpochChange limit on loss) ---
+            const normalModelNormalConvergenceRate = 0.08; // Adjusted rate for a curve
+            const normalModelAdversarialConvergenceRate = 0.05; // Adjusted rate
+            const normalModelLossConvergenceRate = 0.08; // Adjusted rate
+
+            normalNormalAccuracy += (NORMAL_FINAL_TARGET_NORMAL_ACCURACY - normalNormalAccuracy) * normalModelNormalConvergenceRate;
+            normalNormalAccuracy = Math.min(1.0, Math.max(0.1, normalNormalAccuracy));
+
+            normalAdversarialAccuracy += (NORMAL_FINAL_TARGET_ADVERSARIAL_ACCURACY - normalAdversarialAccuracy) * normalModelAdversarialConvergenceRate;
+            normalAdversarialAccuracy = Math.min(normalNormalAccuracy * 0.1, Math.max(0.001, normalAdversarialAccuracy));
+
+            normalLoss += (NORMAL_FINAL_TARGET_LOSS - normalLoss) * normalModelLossConvergenceRate; // Loss goes down, so add a negative delta
+            normalLoss = Math.min(2.0, Math.max(NORMAL_FINAL_TARGET_LOSS, normalLoss));
+
+
+            // --- Robust Model Logic ---
+            let nextRobustNormalAccuracy;
+            let nextRobustAdversarialAccuracy;
+            let nextRobustLoss;
+
+            // If no attacks are selected, the robust model is identical to the normal model
+            if (numSelectedAttacks === 0) {
+                nextRobustNormalAccuracy = normalNormalAccuracy;
+                nextRobustAdversarialAccuracy = normalAdversarialAccuracy;
+                nextRobustLoss = normalLoss;
+            } else {
+                // Calculate deltas for gradual convergence, scaled by remaining epochs for smoother approach
+                const remainingRobustEpochs = totalEpochs - currentEpoch + 1; // +1 to avoid division by zero on last epoch
+                const robustNormalBaseStep = (ROBUST_FINAL_TARGET_NORMAL_ACCURACY - robustNormalAccuracy) / remainingRobustEpochs;
+                const robustAdversarialBaseStep = (ROBUST_FINAL_TARGET_ADVERSARIAL_ACCURACY - robustAdversarialAccuracy) / remainingRobustEpochs;
+                const robustLossBaseStep = (ROBUST_FINAL_TARGET_LOSS - robustLoss) / remainingRobustEpochs;
+
+                // Apply step, clamping to maxEpochChange
+                nextRobustNormalAccuracy = robustNormalAccuracy + Math.min(Math.abs(robustNormalBaseStep), maxEpochChange) * Math.sign(robustNormalBaseStep);
+                nextRobustAdversarialAccuracy = robustAdversarialAccuracy + Math.min(Math.abs(robustAdversarialBaseStep * (useAISample ? 1.5 : 1)), maxEpochChange) * Math.sign(robustAdversarialBaseStep);
+                nextRobustLoss = robustLoss + Math.min(Math.abs(robustLossBaseStep), maxEpochChange) * Math.sign(robustLossBaseStep);
+
+                // Apply periodic fluctuations for Robust Model (if not the last epoch)
+                if (currentEpoch > 0 && currentEpoch % vulnerabilityPeriod === 0 && currentEpoch < totalEpochs) {
+                    const fluctuationMagnitude = (Math.random() * 0.05); // 0 to 0.05
+                    nextRobustNormalAccuracy = Math.max(0.1, nextRobustNormalAccuracy - fluctuationMagnitude);
+                    nextRobustAdversarialAccuracy = Math.max(0.05, nextRobustAdversarialAccuracy - fluctuationMagnitude);
+                    nextRobustLoss = Math.min(2.0, nextRobustLoss + fluctuationMagnitude);
+                }
+            }
+            
+            // Final clamping for robust values
+            robustNormalAccuracy = Math.min(1.0, Math.max(0.1, nextRobustNormalAccuracy));
+            robustAdversarialAccuracy = Math.min(robustNormalAccuracy - 0.01, Math.max(0.05, nextRobustAdversarialAccuracy)); // Always below normal, and min 0.05
+            robustLoss = Math.min(2.0, Math.max(ROBUST_FINAL_TARGET_LOSS, nextRobustLoss));
+
+            let currentRobustAdversarialAccuracyForChart = robustAdversarialAccuracy;
+            // The logic to display a dashed line in the chart when no adversarial samples are used
+            if (numSelectedAttacks === 0 || (selectedStrategy === 'strategyA' && currentEpoch < vulnerabilityPeriod)) {
+                currentRobustAdversarialAccuracyForChart = null;
+            }
+
+            // --- Force final values at the last epoch ---
+            if (currentEpoch === totalEpochs) {
+                if (numSelectedAttacks === 0) {
+                    robustNormalAccuracy = NORMAL_FINAL_TARGET_NORMAL_ACCURACY;
+                    robustAdversarialAccuracy = NORMAL_FINAL_TARGET_ADVERSARIAL_ACCURACY;
+                    robustLoss = NORMAL_FINAL_TARGET_LOSS;
+                } else {
+                    robustNormalAccuracy = ROBUST_FINAL_TARGET_NORMAL_ACCURACY;
+                    robustAdversarialAccuracy = ROBUST_FINAL_TARGET_ADVERSARIAL_ACCURACY;
+                    robustLoss = ROBUST_FINAL_TARGET_LOSS;
+                }
+
+                normalNormalAccuracy = NORMAL_FINAL_TARGET_NORMAL_ACCURACY;
+                normalAdversarialAccuracy = NORMAL_FINAL_TARGET_ADVERSARIAL_ACCURACY;
+                normalLoss = NORMAL_FINAL_TARGET_LOSS;
+            }
+
+
+            // Push data to Robust Performance Chart
+            robustPerformanceChart.data.labels.push(`E${currentEpoch}`);
+            robustPerformanceChart.data.datasets[0].data.push(robustNormalAccuracy);
+            robustPerformanceChart.data.datasets[1].data.push(currentRobustAdversarialAccuracyForChart);
+            robustPerformanceChart.data.datasets[2].data.push(robustLoss);
+            robustPerformanceChart.update();
+
+            // Push data to Normal Performance Chart
+            normalPerformanceChart.data.labels.push(`E${currentEpoch}`);
+            normalPerformanceChart.data.datasets[0].data.push(normalNormalAccuracy);
+            normalPerformanceChart.data.datasets[1].data.push(normalAdversarialAccuracy);
+            normalPerformanceChart.data.datasets[2].data.push(normalLoss);
+            normalPerformanceChart.update();
+            
+            if (currentEpoch % vulnerabilityPeriod === 0 && currentEpoch > 0) {
+                console.log(`Epoch ${currentEpoch} - 취약도 재계산 중...`);
+                
+                const alpha = 0.5;
+                let newVulnerabilities = {};
+                let totalExpS = 0;
+
+                // Vulnerability scores are only updated for selected attacks
+                selectedAttacks.forEach(attack => {
+                    const dummyLoss = Math.random() * 0.3 + 0.3;
+                    const dummyAccuracy = (robustAdversarialAccuracy !== null) ? (Math.random() * 0.1 + robustAdversarialAccuracy) : (Math.random() * 0.1 + 0.5);
+                    const S_i = alpha * dummyLoss + (1 - alpha) * (1 - dummyAccuracy);
+                    newVulnerabilities[attack] = S_i;
+                });
+                
+                let newScores = {};
+                selectedAttacks.forEach(attack => {
+                    if (newVulnerabilities[attack] > 0) {
+                        let score = Math.exp(newVulnerabilities[attack]);
+                        totalExpS += score;
+                        newScores[attack] = score;
+                    } else {
+                        newScores[attack] = 0;
+                    }
+                });
+                
+                // Normalizing scores
+                if (totalExpS > 0) {
+                    selectedAttacks.forEach(attack => {
+                        newScores[attack] /= totalExpS;
+                    });
+                }
+                
+                vulnerabilities = newScores;
+                
+                // Set non-selected attack scores to 0
+                attacks.filter(attack => !selectedAttacks.includes(attack)).forEach(attack => {
+                    vulnerabilities[attack] = 0;
+                });
+                
+                // Push data to vulnerability chart
+                vulnerabilityChart.data.labels.push(`E${currentEpoch}`);
+                vulnerabilityChart.data.datasets.forEach(dataset => {
+                    dataset.data.push(vulnerabilities[dataset.label]);
+                });
+                vulnerabilityChart.update();
+                
+                addBatchCompositionRow(currentEpoch, vulnerabilities);
+
+                robustEvaluations.push({
+                    epoch: currentEpoch,
+                    normalAccuracy: robustNormalAccuracy,
+                    adversarialAccuracy: robustAdversarialAccuracy
+                });
+            }
+
+            if (currentEpoch >= totalEpochs) {
+                clearInterval(interval);
+                startButton.disabled = false;
+                startButton.innerText = "강건화 학습 완료";
+                evaluateButton.classList.remove('hidden');
+
+                normalModelFinalStats = {
+                    normalAccuracy: normalNormalAccuracy,
+                    adversarialAccuracy: normalAdversarialAccuracy
+                };
+            }
+        }, 300);
+    };
+
+    startButton.addEventListener('click', () => {
+        resultsSection.classList.remove('hidden');
+        evaluateButton.classList.add('hidden');
+        startButton.disabled = true;
+        startButton.innerText = "강건화 학습 진행 중...";
+
+        robustPerformanceChart.data.labels = [];
+        robustPerformanceChart.data.datasets.forEach(dataset => dataset.data = []);
+        robustPerformanceChart.update();
+
+        normalPerformanceChart.data.labels = [];
+        normalPerformanceChart.data.datasets.forEach(dataset => dataset.data = []);
+        normalPerformanceChart.update();
+
+        vulnerabilityChart.data.labels = [];
+        vulnerabilityChart.data.datasets.forEach(dataset => dataset.data = []);
+        vulnerabilityChart.update();
+        batchCompositionTableBody.innerHTML = '';
+        evaluationResultsSection.classList.add('hidden');
+        
+        robustEvaluations = [];
+        normalModelFinalStats = {};
+        
+        simulateLearning();
+    });
+
+    evaluateButton.addEventListener('click', () => {
+        const robustFinalEval = robustEvaluations[robustEvaluations.length - 1] || { normalAccuracy: 0, adversarialAccuracy: 0 };
+        const normalFinalEval = normalModelFinalStats || { normalAccuracy: 0, adversarialAccuracy: 0 };
+
+        const finalRobustAdversarialAcc = robustFinalEval.adversarialAccuracy !== null ? robustFinalEval.adversarialAccuracy : normalFinalEval.adversarialAccuracy;
+
+        comparisonEvalChart.data.datasets[0].data = [
+            normalFinalEval.normalAccuracy,
+            normalFinalEval.adversarialAccuracy,
+            robustFinalEval.normalAccuracy,
+            finalRobustAdversarialAcc
+        ];
+        comparisonEvalChart.update();
+
+        let bestRobustModelIndex = -1;
+        let maxRobustAdversarialAccuracy = 0;
+        
+        robustEvaluations.forEach((eval, index) => {
+            if (eval.adversarialAccuracy !== null && eval.adversarialAccuracy > maxRobustAdversarialAccuracy) {
+                maxRobustAdversarialAccuracy = eval.adversarialAccuracy;
+                bestRobustModelIndex = index;
+            }
+        });
+
+        let recommendationHtml = '<h4 class="text-xl font-bold text-gray-800 mb-4">모델별 성능 요약</h4>';
+        
+        if (normalModelFinalStats.normalAccuracy) {
+            const normalFinalNormalAcc = (normalModelFinalStats.normalAccuracy * 100).toFixed(1);
+            const normalFinalAdversarialAcc = (normalModelFinalStats.adversarialAccuracy * 100).toFixed(1);
+            
+            recommendationHtml += `
+                <div class="p-3 bg-gray-100 rounded-lg mb-4">
+                    <span class="font-bold text-gray-800">일반 모델 (최종 Epoch): </span>
+                    <ul class="list-disc list-inside mt-2 text-sm text-gray-700">
+                        <li>정상 샘플 정확도: ${normalFinalNormalAcc}%</li>
+                        <li>적대적 샘플 정확도: ${normalFinalAdversarialAcc}%</li>
+                    </ul>
+                     <p class="mt-2 text-gray-600 font-medium">⚠️ 이 모델은 적대적 공격에 매우 취약합니다. 강건화 학습을 권장합니다.</p>
+                </div>
+            `;
+        } else {
+            recommendationHtml += `
+                <div class="p-3 bg-red-100 rounded-lg text-red-700 mb-4">
+                    일반 모델 평가 데이터가 없습니다. 학습을 먼저 시작해주세요.
+                </div>
+            `;
+        }
+
+        if (bestRobustModelIndex !== -1) {
+            const bestModelEpoch = robustEvaluations[bestRobustModelIndex].epoch;
+            const finalNormalAcc = (robustEvaluations[bestRobustModelIndex].normalAccuracy * 100).toFixed(1);
+            
+            const finalAdversarialAcc = (finalRobustAdversarialAcc * 100).toFixed(1);
+
+            let message = "";
+            let messageClass = "";
+
+            if (finalRobustAdversarialAcc < 0.2) {
+                message = "매우 취약합니다. 모델, 학습 전략, 공격 기법을 전반적으로 재검토해야 합니다.";
+                messageClass = "text-red-700";
+            } else if (finalRobustAdversarialAcc < 0.5) {
+                message = "강건화 모델이 여전히 적대적 공격에 취약합니다. 학습 전략이나 공격 기법을 재조정하는 것을 고려해 보세요.";
+                messageClass = "text-yellow-600";
+            } else if (finalRobustAdversarialAcc < 0.8) {
+                message = "적대적 공격에 대한 방어 능력이 상당히 개선되었습니다. 실제 환경에 배포하기에 적합합니다.";
+                messageClass = "text-blue-700";
+            } else {
+                message = "매우 뛰어난 성능을 보여줍니다. 적대적 공격에 대해 탁월한 강건성을 갖추고 있습니다.";
+                messageClass = "text-green-700";
+            }
+            
+            recommendationHtml += `
+                <div class="p-3 bg-blue-100 rounded-lg">
+                    <span class="font-bold text-gray-800">강건화 적용 모델 (Epoch ${bestModelEpoch}): </span>
+                    <ul class="list-disc list-inside mt-2 text-sm text-gray-700">
+                        <li>정상 샘플 정확도: ${finalNormalAcc}%</li>
+                        <li>적대적 샘플 정확도: ${finalAdversarialAcc}%</li>
+                    </ul>
+                    <p class="mt-2 ${messageClass} font-medium">${message}</p>
+                </div>
+            `;
+        } else {
+            recommendationHtml += `
+                <div class="p-3 bg-red-100 rounded-lg text-red-700">
+                    강건화 적용 모델 평가 데이터가 없습니다. 학습을 먼저 시작해주세요.
+                </div>
+            `;
+        }
+        
+        evaluationContent.innerHTML = recommendationHtml;
+        evaluationResultsSection.classList.remove('hidden');
+    });
+</script>
+</body>
+</html>
+
